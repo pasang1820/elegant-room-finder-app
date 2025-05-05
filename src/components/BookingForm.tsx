@@ -12,6 +12,8 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoomType } from './RoomCard';
 import { validateBookingForm } from '@/utils/validation';
+import { submitBooking } from '@/utils/api';
+import { toast } from '@/components/ui/sonner';
 
 interface BookingFormProps {
   preSelectedRoom?: RoomType;
@@ -28,6 +30,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
     guests: '1'
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,24 +57,36 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form
     const validationErrors = validateBookingForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
     
-    // If form is valid, simulate API call and navigate to confirmation
-    // In a real application, this would send data to a server
-    navigate('/confirmation', { 
-      state: { 
-        bookingData: formData,
-        success: true,
-        message: "The below booking has been successful!" 
-      } 
-    });
+    setIsSubmitting(true);
+    
+    try {
+      // Submit booking to database
+      const result = await submitBooking(formData);
+      
+      // Navigate to confirmation page with result
+      navigate('/confirmation', { 
+        state: { 
+          bookingData: formData,
+          success: result.success,
+          message: result.message 
+        } 
+      });
+    } catch (error) {
+      console.error('Error during booking submission:', error);
+      toast.error("An unexpected error occurred. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
@@ -88,6 +103,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
           onChange={handleInputChange}
           placeholder="Enter your first and last name"
           className={errors.fullName ? "border-red-500" : ""}
+          disabled={isSubmitting}
         />
         {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
       </div>
@@ -103,6 +119,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
           onChange={handleInputChange}
           placeholder="your.email@example.com"
           className={errors.email ? "border-red-500" : ""}
+          disabled={isSubmitting}
         />
         {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
       </div>
@@ -117,6 +134,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
           onChange={handleInputChange}
           placeholder="04XX XXX XXX"
           className={errors.phone ? "border-red-500" : ""}
+          disabled={isSubmitting}
         />
         {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
       </div>
@@ -132,6 +150,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
                 "w-full justify-start text-left font-normal",
                 errors.checkInDate ? "border-red-500" : ""
               )}
+              disabled={isSubmitting}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {formData.checkInDate ? (
@@ -161,7 +180,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
         <Select 
           value={formData.roomType} 
           onValueChange={(value) => handleSelectChange(value, 'roomType')}
-          disabled={!!preSelectedRoom}
+          disabled={!!preSelectedRoom || isSubmitting}
         >
           <SelectTrigger className={errors.roomType ? "border-red-500" : ""}>
             <SelectValue placeholder="Select room type" />
@@ -184,6 +203,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
         <Select 
           value={formData.guests} 
           onValueChange={(value) => handleSelectChange(value, 'guests')}
+          disabled={isSubmitting}
         >
           <SelectTrigger className={errors.guests ? "border-red-500" : ""}>
             <SelectValue placeholder="Select number of guests" />
@@ -199,8 +219,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
         {errors.guests && <p className="text-red-500 text-sm">{errors.guests}</p>}
       </div>
       
-      <Button type="submit" className="w-full gold-button">
-        Complete Booking
+      <Button type="submit" className="w-full gold-button" disabled={isSubmitting}>
+        {isSubmitting ? "Processing..." : "Complete Booking"}
       </Button>
     </form>
   );
