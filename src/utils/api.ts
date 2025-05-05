@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface BookingData {
@@ -46,14 +47,14 @@ export const submitBooking = async (bookingData: BookingData): Promise<{success:
     // Otherwise, add the booking to the database
     const { data, error } = await supabase
       .from('bookings')
-      .insert({
+      .insert([{
         full_name: bookingData.fullName,
         email: bookingData.email,
         phone: bookingData.phone,
         check_in_date: formattedDate,
         room_type: bookingData.roomType,
         guests: guestsNum
-      });
+      }]);
     
     if (error) {
       console.error('Error inserting booking:', error);
