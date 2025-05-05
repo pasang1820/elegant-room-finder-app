@@ -13,6 +13,7 @@ interface BookingData {
   checkInDate: Date;
   roomType: string;
   guests: string;
+  preCheckoutService?: boolean;
 }
 
 interface LocationState {
@@ -91,6 +92,11 @@ const ConfirmationPage: React.FC = () => {
                     <div>
                       <p className="text-gray-500">Number of Guests</p>
                       <p className="font-medium">{bookingData.guests}</p>
+                    </div>
+                    
+                    <div className="col-span-2">
+                      <p className="text-gray-500">Pre-checkout Service</p>
+                      <p className="font-medium">{bookingData.preCheckoutService ? 'Yes' : 'No'}</p>
                     </div>
                   </div>
                 </div>

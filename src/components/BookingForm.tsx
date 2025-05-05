@@ -14,6 +14,7 @@ import { RoomType } from './RoomCard';
 import { validateBookingForm } from '@/utils/validation';
 import { submitBooking } from '@/utils/api';
 import { toast } from '@/components/ui/sonner';
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface BookingFormProps {
   preSelectedRoom?: RoomType;
@@ -27,7 +28,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
     phone: '',
     checkInDate: new Date(),
     roomType: preSelectedRoom?.name || '',
-    guests: '1'
+    guests: '1',
+    preCheckoutService: false
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,6 +57,10 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
         setErrors(prev => ({ ...prev, checkInDate: '' }));
       }
     }
+  };
+  
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData(prev => ({ ...prev, preCheckoutService: checked }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,6 +223,19 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedRoom }) => {
           </SelectContent>
         </Select>
         {errors.guests && <p className="text-red-500 text-sm">{errors.guests}</p>}
+      </div>
+      
+      {/* Pre-checkout Service Option */}
+      <div className="flex items-center space-x-2 pt-2">
+        <Checkbox 
+          id="preCheckoutService" 
+          checked={formData.preCheckoutService}
+          onCheckedChange={handleCheckboxChange}
+          disabled={isSubmitting}
+        />
+        <Label htmlFor="preCheckoutService" className="cursor-pointer">
+          I would like pre-checkout service (express checkout, luggage assistance)
+        </Label>
       </div>
       
       <Button type="submit" className="w-full gold-button" disabled={isSubmitting}>

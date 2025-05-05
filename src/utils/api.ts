@@ -8,6 +8,7 @@ interface BookingData {
   checkInDate: Date;
   roomType: string;
   guests: string;
+  preCheckoutService?: boolean;
 }
 
 export const submitBooking = async (bookingData: BookingData): Promise<{success: boolean; message: string}> => {
@@ -53,7 +54,8 @@ export const submitBooking = async (bookingData: BookingData): Promise<{success:
         phone: bookingData.phone,
         check_in_date: formattedDate,
         room_type: bookingData.roomType,
-        guests: guestsNum
+        guests: guestsNum,
+        pre_checkout_service: bookingData.preCheckoutService || false
       }]);
     
     if (error) {
